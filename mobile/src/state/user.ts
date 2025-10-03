@@ -1,6 +1,10 @@
-import {atom} from 'recoil';
+import { atom } from 'recoil';
 
 export const currentUserState = atom({
   key: 'currentUserState',
-  default: {id: 1, name: 'Test User'}, // Hardcoded for this example
+  default: {
+    id: 0,
+    name: '',
+    token: '',
+  },
 });

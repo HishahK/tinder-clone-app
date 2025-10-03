@@ -1,12 +1,10 @@
-import {useInfiniteQuery, useMutation, useQuery} from '@tanstack/react-query';
-import apiClient from '../api/client';
-import {queryClient} from '../App'; // Assume App.tsx exports queryClient
+import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
+import { useApiClient } from '../api/client';
 
 export interface Picture {
   id: number;
   url: string;
 }
-
 export interface User {
   id: number;
   name: string;
@@ -14,43 +12,38 @@ export interface User {
   pictures: Picture[];
 }
 
-const fetchRecommendations = async ({pageParam = 1}) => {
-  const {data} = await apiClient.get(`/recommendations?page=${pageParam}`);
-  return data;
-};
-
-const swipeUser = async ({swipedId, action}: {swipedId: number; action: 'like' | 'nope'}) => {
-  const {data} = await apiClient.post('/swipe', {
-    swiped_id: swipedId,
-    action,
-  });
-  return data;
-};
-
-const fetchLiked = async () => {
-  const {data} = await apiClient.get<User[]>('/likes');
-  return data;
-};
-
 export const useRecommendations = () => {
+  const client = useApiClient();
   return useInfiniteQuery({
     queryKey: ['recommendations'],
-    queryFn: fetchRecommendations,
+    queryFn: async ({ pageParam = 1 }) => {
+      const { data } = await client.get(`/recommendations?page=${pageParam}`);
+      return data;
+    },
     getNextPageParam: lastPage => {
-      return lastPage.current_page < lastPage.last_page
-        ? lastPage.current_page + 1
-        : undefined;
+      return lastPage.current_page < lastPage.last_page ? lastPage.current_page + 1 : undefined;
     },
     initialPageParam: 1,
   });
 };
 
 export const useSwipe = () => {
+  const client = useApiClient();
   return useMutation({
-    mutationFn: swipeUser
+    mutationFn: async ({ swipedId, action }: { swipedId: number; action: 'like' | 'nope' }) => {
+      const { data } = await client.post('/swipe', { swiped_id: swipedId, action });
+      return data;
+    },
   });
 };
 
 export const useLiked = () => {
-  return useQuery<User[], Error>({queryKey: ['liked'], queryFn: fetchLiked});
+  const client = useApiClient();
+  return useQuery({
+    queryKey: ['liked'],
+    queryFn: async () => {
+      const { data } = await client.get('/likes');
+      return data;
+    },
+  });
 };
