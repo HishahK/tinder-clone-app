@@ -1,0 +1,6 @@
+run = "bash start.sh"
+
+# Expose Laravel's internal port 8000 on the external port 80.
+[[ports]]
+localPort = 8000
+externalPort = 80
